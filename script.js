@@ -41,19 +41,11 @@ class ChakraSoundHealer {
     }
     
     setupEventListeners() {
-        // Botones de reproducción
-        document.querySelectorAll('.play-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        // Manejar clics en los iconos de chakras
+        document.querySelectorAll('.chakra-icon').forEach(icon => {
+            icon.addEventListener('click', (e) => {
                 const chakra = e.currentTarget.dataset.chakra;
                 this.toggleChakra(chakra);
-            });
-        });
-        
-        // Controles de volumen individuales
-        document.querySelectorAll('.volume-slider').forEach(slider => {
-            slider.addEventListener('input', (e) => {
-                const chakra = e.currentTarget.dataset.chakra;
-                this.updateChakraVolume(chakra, e.target.value);
             });
         });
         
@@ -66,17 +58,6 @@ class ChakraSoundHealer {
         // Botón detener todo
         document.querySelector('.stop-all-btn').addEventListener('click', () => {
             this.stopAllChakras();
-        });
-        
-        // Manejar clics en las tarjetas para activar/desactivar
-        document.querySelectorAll('.chakra-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                // Solo activar si no se hizo clic en un control
-                if (!e.target.closest('.controls')) {
-                    const chakra = card.dataset.chakra;
-                    this.toggleChakra(chakra);
-                }
-            });
         });
     }
     
@@ -170,12 +151,6 @@ class ChakraSoundHealer {
         });
     }
     
-    updateChakraVolume(chakra, volume) {
-        if (this.gainNodes[chakra]) {
-            const normalizedVolume = volume / 100;
-            this.gainNodes[chakra].gain.setValueAtTime(normalizedVolume, this.audioContext.currentTime);
-        }
-    }
     
     updateMasterVolume(volume = null) {
         if (volume === null) {
@@ -187,15 +162,12 @@ class ChakraSoundHealer {
     }
     
     updateChakraUI(chakra, isPlaying) {
-        const card = document.querySelector(`[data-chakra="${chakra}"]`);
-        const playBtn = card.querySelector('.play-btn');
+        const icon = document.querySelector(`[data-chakra="${chakra}"]`);
         
         if (isPlaying) {
-            card.classList.add('playing');
-            playBtn.classList.add('playing');
+            icon.classList.add('playing');
         } else {
-            card.classList.remove('playing');
-            playBtn.classList.remove('playing');
+            icon.classList.remove('playing');
         }
     }
     
@@ -313,8 +285,8 @@ function createFloatingParticles() {
 function addBreathingEffect() {
     const style = document.createElement('style');
     style.textContent = `
-        .chakra-card {
-            animation: breathe 4s ease-in-out infinite;
+        .chakra-icon {
+            animation: breathe 6s ease-in-out infinite;
         }
         
         @keyframes breathe {
@@ -326,8 +298,8 @@ function addBreathingEffect() {
             }
         }
         
-        .chakra-card.playing {
-            animation: breathe 2s ease-in-out infinite;
+        .chakra-icon.playing {
+            animation: breathe 3s ease-in-out infinite;
         }
     `;
     document.head.appendChild(style);

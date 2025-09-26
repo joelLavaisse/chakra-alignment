@@ -39,54 +39,40 @@ body {
     opacity: 0.9;
 }
 
-/* Grid de chakras */
-.chakra-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+/* Columna de chakras */
+.chakra-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 30px;
     margin-bottom: 40px;
 }
 
-/* Tarjetas de chakras */
-.chakra-card {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    backdrop-filter: blur(10px);
+/* Iconos de chakras */
+.chakra-icon {
+    cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
-    overflow: hidden;
 }
 
-.chakra-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+.chakra-icon:hover {
+    transform: scale(1.1);
 }
 
-.chakra-card.playing {
-    box-shadow: 0 0 30px rgba(0,0,0,0.4);
-    transform: scale(1.02);
-}
-
-/* Visualización del chakra */
-.chakra-visual {
-    text-align: center;
-    margin-bottom: 20px;
-    position: relative;
+.chakra-icon.playing {
+    animation: pulse 4s infinite;
 }
 
 .chakra-circle {
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
-    margin: 0 auto 15px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     transition: all 0.3s ease;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
 
 .chakra-circle::before {
@@ -101,9 +87,9 @@ body {
     transition: opacity 0.3s ease;
 }
 
-.chakra-card.playing .chakra-circle::before {
+.chakra-icon.playing .chakra-circle::before {
     opacity: 1;
-    animation: pulse 2s infinite;
+    animation: pulse 4s infinite;
 }
 
 /* Colores específicos de cada chakra */
@@ -171,129 +157,11 @@ body {
 }
 
 .chakra-symbol {
-    font-size: 2rem;
+    font-size: 3rem;
     color: white;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.frequency-display {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #666;
-    background: rgba(0,0,0,0.05);
-    padding: 5px 15px;
-    border-radius: 20px;
-    display: inline-block;
-}
-
-/* Información del chakra */
-.chakra-info {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.chakra-info h3 {
-    font-size: 1.4rem;
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: #333;
-}
-
-.chakra-info p {
-    font-size: 0.9rem;
-    color: #666;
-    margin-bottom: 3px;
-}
-
-.chakra-description {
-    font-style: italic;
-    color: #888;
-}
-
-/* Controles */
-.controls {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.play-btn {
-    width: 50px;
-    height: 50px;
-    border: none;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-
-.play-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-}
-
-.play-btn.playing {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
-}
-
-.play-btn.playing:hover {
-    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
-}
-
-.pause-icon {
-    display: none;
-}
-
-.play-btn.playing .play-icon {
-    display: none;
-}
-
-.play-btn.playing .pause-icon {
-    display: block;
-}
-
-/* Control de volumen */
-.volume-control {
-    flex: 1;
-}
-
-.volume-slider {
-    width: 100%;
-    height: 6px;
-    border-radius: 3px;
-    background: #ddd;
-    outline: none;
-    -webkit-appearance: none;
-    cursor: pointer;
-}
-
-.volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-.volume-slider::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
 
 /* Controles globales */
 .global-controls {
@@ -394,17 +262,17 @@ body {
     }
 }
 
-.chakra-card {
+.chakra-icon {
     animation: fadeIn 0.6s ease forwards;
 }
 
-.chakra-card:nth-child(1) { animation-delay: 0.1s; }
-.chakra-card:nth-child(2) { animation-delay: 0.2s; }
-.chakra-card:nth-child(3) { animation-delay: 0.3s; }
-.chakra-card:nth-child(4) { animation-delay: 0.4s; }
-.chakra-card:nth-child(5) { animation-delay: 0.5s; }
-.chakra-card:nth-child(6) { animation-delay: 0.6s; }
-.chakra-card:nth-child(7) { animation-delay: 0.7s; }
+.chakra-icon:nth-child(1) { animation-delay: 0.1s; }
+.chakra-icon:nth-child(2) { animation-delay: 0.2s; }
+.chakra-icon:nth-child(3) { animation-delay: 0.3s; }
+.chakra-icon:nth-child(4) { animation-delay: 0.4s; }
+.chakra-icon:nth-child(5) { animation-delay: 0.5s; }
+.chakra-icon:nth-child(6) { animation-delay: 0.6s; }
+.chakra-icon:nth-child(7) { animation-delay: 0.7s; }
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -420,13 +288,17 @@ body {
         font-size: 1rem;
     }
     
-    .chakra-grid {
-        grid-template-columns: 1fr;
+    .chakra-column {
         gap: 20px;
     }
     
-    .chakra-card {
-        padding: 20px;
+    .chakra-circle {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .chakra-symbol {
+        font-size: 2.5rem;
     }
     
     .master-volume {
@@ -445,17 +317,11 @@ body {
     }
     
     .chakra-circle {
-        width: 60px;
-        height: 60px;
+        width: 80px;
+        height: 80px;
     }
     
     .chakra-symbol {
-        font-size: 1.5rem;
-    }
-    
-    .play-btn {
-        width: 45px;
-        height: 45px;
-        font-size: 1rem;
+        font-size: 2rem;
     }
 }

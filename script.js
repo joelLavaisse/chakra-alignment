@@ -5,6 +5,17 @@ class ChakraSoundHealer {
         this.gainNodes = {};
         this.masterGain = null;
         this.isInitialized = false;
+        this.currentModalChakra = null;
+        this.modalOpen = false;
+        // Estado para arrastre vertical en el modal
+        this.isDragging = false;
+        this.dragStartY = 0;
+        this.dragStartSliderValue = 0;
+        // Estado de frecuencia sin input
+        this.currentFrequencyOffset = 0; // en Hz relativos (-5..5)
+        this.frequencyOffsetMin = -5;
+        this.frequencyOffsetMax = 5;
+        this.frequencyOffsetStep = 0.1;
         
         this.chakraData = {
             'crown': { frequency: 963, name: 'Corona', color: '#9B59B6' },
@@ -45,7 +56,7 @@ class ChakraSoundHealer {
         document.querySelectorAll('.chakra-icon').forEach(icon => {
             icon.addEventListener('click', (e) => {
                 const chakra = e.currentTarget.dataset.chakra;
-                this.toggleChakra(chakra);
+                this.openFrequencyModal(chakra);
             });
         });
         
@@ -59,6 +70,9 @@ class ChakraSoundHealer {
         document.querySelector('.stop-all-btn').addEventListener('click', () => {
             this.stopAllChakras();
         });
+        
+        // Event listeners del modal
+        this.setupModalEventListeners();
     }
     
     async toggleChakra(chakra) {
@@ -206,6 +220,218 @@ class ChakraSoundHealer {
             activeChakras: Object.keys(this.oscillators),
             masterVolume: this.masterGain ? this.masterGain.gain.value : 0
         };
+    }
+    
+    // Métodos del modal
+    setupModalEventListeners() {
+        const modal = document.getElementById('frequencyModal');
+        const modalContent = document.querySelector('.modal-content');
+        
+        // Cerrar modal al hacer clic fuera del contenido
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeFrequencyModal();
+            }
+        });
+        
+        // Cerrar modal con tecla ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.modalOpen) {
+                this.closeFrequencyModal();
+            }
+        });
+        
+        // (El control de frecuencia ahora se hace solo por arrastre vertical)
+        
+        // Botón done (Listo)
+        const doneBtn = document.getElementById('doneBtn');
+        doneBtn.addEventListener('click', () => {
+            this.closeFrequencyModal();
+        });
+
+        // Arrastre vertical en modal-body para cambiar frecuencia
+        const startDrag = (clientY) => {
+            if (!this.modalOpen) return;
+            this.isDragging = true;
+            this.dragStartY = clientY;
+            this.dragStartSliderValue = this.currentFrequencyOffset;
+            if (modalContent) {
+                modalContent.style.cursor = 'ns-resize';
+                modalContent.style.userSelect = 'none';
+            }
+            // Iniciar sonido al mantener presionado
+            this.playModalChakra();
+        };
+
+        const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
+
+        const onMove = (clientY) => {
+            if (!this.isDragging) return;
+            const deltaY = this.dragStartY - clientY; // subir = positivo
+            const sensitivity = 0.02; // ~0.02 Hz por px -> 50px = 1Hz
+            const min = this.frequencyOffsetMin;
+            const max = this.frequencyOffsetMax;
+            let next = this.dragStartSliderValue + deltaY * sensitivity;
+            // Respetar step 0.1 del slider
+            next = Math.round(next * 10) / 10;
+            next = clamp(next, min, max);
+            if (this.oscillators[this.currentModalChakra]) {
+                this.updateOscillatorFrequency(next);
+            }
+        };
+
+        const endDrag = () => {
+            if (!this.isDragging) return;
+            this.isDragging = false;
+            if (modalContent) {
+                modalContent.style.cursor = '';
+                modalContent.style.userSelect = '';
+            }
+            // Detener sonido al soltar
+            this.stopModalChakra();
+        };
+
+        if (modalContent) {
+            // Mouse
+            modalContent.addEventListener('mousedown', (e) => {
+                const target = e.target;
+                if (target && (target.id === 'doneBtn' || (target.closest && target.closest('#doneBtn')))) {
+                    return; // No iniciar arrastre al hacer click en "Listo"
+                }
+                e.preventDefault();
+                startDrag(e.clientY);
+            });
+            window.addEventListener('mousemove', (e) => onMove(e.clientY), { passive: true });
+            window.addEventListener('mouseup', endDrag);
+
+            // Touch
+            modalContent.addEventListener('touchstart', (e) => {
+                const target = e.target;
+                if (target && (target.id === 'doneBtn' || (target.closest && target.closest('#doneBtn')))) {
+                    return;
+                }
+                if (e.touches && e.touches.length > 0) {
+                    startDrag(e.touches[0].clientY);
+                }
+            }, { passive: true });
+            window.addEventListener('touchmove', (e) => {
+                if (e.touches && e.touches.length > 0) {
+                    // Evitar scroll durante el arrastre
+                    if (this.isDragging) e.preventDefault();
+                    onMove(e.touches[0].clientY);
+                }
+            }, { passive: false });
+            window.addEventListener('touchend', endDrag);
+            window.addEventListener('touchcancel', endDrag);
+        }
+    }
+    
+    openFrequencyModal(chakra) {
+        this.currentModalChakra = chakra;
+        this.modalOpen = true;
+        
+        const modal = document.getElementById('frequencyModal');
+        
+        // Configurar el contenido del modal
+        this.currentFrequencyOffset = 0;
+        
+        // Aplicar tema del chakra
+        modal.className = `frequency-modal show ${chakra}-theme`;
+        
+        // Mostrar modal
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    closeFrequencyModal() {
+        const modal = document.getElementById('frequencyModal');
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+        this.modalOpen = false;
+        this.currentModalChakra = null;
+    }
+    
+    updateOscillatorFrequency(sliderValue) {
+        const chakra = this.currentModalChakra;
+        if (this.oscillators[chakra]) {
+            const baseFrequency = this.chakraData[chakra].frequency;
+            const newFrequency = baseFrequency + parseFloat(sliderValue);
+            
+            this.oscillators[chakra].frequency.setValueAtTime(
+                newFrequency, 
+                this.audioContext.currentTime
+            );
+            this.currentFrequencyOffset = parseFloat(sliderValue);
+        }
+    }
+    
+    toggleModalChakra() {
+        if (!this.isInitialized) {
+            this.init().then(() => {
+                this.toggleModalChakra();
+            });
+            return;
+        }
+        
+        const chakra = this.currentModalChakra;
+        if (this.oscillators[chakra]) {
+            this.stopChakra(chakra);
+        } else {
+            this.playModalChakra();
+        }
+    }
+    
+    playModalChakra() {
+        const chakra = this.currentModalChakra;
+        if (!this.isInitialized || this.oscillators[chakra]) return;
+        
+        try {
+            const baseFrequency = this.chakraData[chakra].frequency;
+            const frequency = baseFrequency + this.currentFrequencyOffset;
+            
+            // Crear oscilador
+            const oscillator = this.audioContext.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+            
+            // Crear nodo de ganancia
+            const gainNode = this.audioContext.createGain();
+            gainNode.gain.value = 0.3;
+            
+            // Conectar
+            oscillator.connect(gainNode);
+            gainNode.connect(this.masterGain);
+            
+            // Fade-in suave
+            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, this.audioContext.currentTime + 0.5);
+            
+            // Iniciar
+            oscillator.start();
+            
+            // Guardar referencias
+            this.oscillators[chakra] = oscillator;
+            this.gainNodes[chakra] = gainNode;
+            
+            // Actualizar UI
+            this.updateChakraUI(chakra, true);
+            
+            console.log(`Reproduciendo chakra ${chakra} a ${frequency} Hz`);
+            
+        } catch (error) {
+            console.error(`Error al reproducir chakra ${chakra}:`, error);
+        }
+    }
+    
+    stopModalChakra() {
+        const chakra = this.currentModalChakra;
+        if (this.oscillators[chakra]) {
+            this.stopChakra(chakra);
+        }
+    }
+    
+    updatePlayPauseButton(isPlaying) {
+        // Eliminado: ya no hay botón de play/pause en el modal
     }
 }
 
